@@ -6,7 +6,7 @@ from setuptools import find_packages
 
 setup(
     name="LeakDB",
-    version="0.1",
+    version="0.2",
     packages=find_packages(),
     author="Lujeni",
     author_email="julien@thebault.co",
