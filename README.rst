@@ -1,5 +1,12 @@
 LeakDB
 ======
+.. image:: https://pypip.in/download/LeakDB/badge.png
+    :target: https://pypi.python.org/pypi/LeakDB/
+    :alt: Downloads
+
+.. image:: https://pypip.in/version/LeakDB/badge.png
+    :target: https://pypi.python.org/pypi/LeakDB/
+    :alt: Latest Version
 
 Why ?
 -----
