@@ -80,6 +80,6 @@ TODO
 
 - finish the transport layer through zeroMQ
 - cleanup the code
-- write the unittests
+- improves the unittests
 - write a CLI
 - benchmark each storage

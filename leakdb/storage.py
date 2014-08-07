@@ -15,34 +15,45 @@ class DefaultStorage(dict):
 
     def set(self, key, value, key_prefix=None):
         """
-        :return: a boolean.
-        """
-        _key = "{}{}".format(key_prefix, key) if key_prefix else key
-        super(DefaultStorage, self).__setitem__(_key, value)
+        :params key: Key to set.
+        :params value: Value to set. The value type can be any value supported by the Python pickle module.
+        :params str key_prefix: Prefix to prepend to all keys (default=None).
 
-        self.hook(operation="set", item={_key: value})
-        return True
+        :returns: True if insertion succeeds.
+        """
+        try:
+            _key = "{}{}".format(key_prefix, key) if key_prefix else key
+            super(DefaultStorage, self).__setitem__(_key, value)
+            self.hook(operation="set", item={_key: value})
+        except Exception as e:
+            logger.critical('unable to set a key :: {}'.format(e))
+            return False
+        else:
+            return True
 
     def set_multi(self, mapping, key_prefix=None):
         """
-        :param mapping: dict of keys to values
-        :param key_prefix: prefix to prepend to all keys.
+        :params dict mapping: Dict of keys to values.
+        :params str key_prefix: Prefix to prepend to all keys (default=None).
 
-        :return: a boolean.
+        :returns: True if all insertion succeeds, false otherwise.
         """
-        [self.set(k, v, key_prefix) for k, v in mapping.items()]
-
-        return True
+        return all([self.set(k, v, key_prefix) for k, v in mapping.items()])
 
     def incr(self, key, delta=1, initial_value=None):
         """
-        :param key: key to increment.
-        :param delta: non-negative integer value (int or long) to increment key by, defaulting to 1.
-        :param initial_value: an initial value to be used if the key does not yet exist in the cache.
+        :params key: Key to increment.
+        :params int delta: Non-negative integer value to increment key by (default=1).
+        :params int initial_value: An initial value to be used if the key does not yet exist in the cache.
 
-        :return: a boolean.
+        :returns: True if increment succeeds.
+
+        :raises ValueError: increment a non-numeric value.
         """
         try:
+            if delta < 0:
+                raise ValueError(delta)
+
             value = self.get(key)
             if not value:
                 value = initial_value or delta
@@ -56,12 +67,18 @@ class DefaultStorage(dict):
 
     def decr(self, key, delta=1):
         """
-        :param key: key to increment.
-        :param delta: non-negative integer value (int or long) to increment key by, defaulting to 1.
+        :params key: Key to decrement.
+        :params int delta: Non-negative integer value to decrement key by (default=1).
 
-        :return: a boolean
+        :returns: True if decrement succeeds.
+
+        :raises ValueError: decrement a non-numeric value.
         """
+        # TODO: DRY with the incr method.
         try:
+            if delta < 0:
+                raise ValueError(delta)
+
             value = self.get(key)
             if not value:
                 return False
@@ -76,13 +93,23 @@ class DefaultStorage(dict):
     def get_multi(self, keys):
         """ Looks up multiple keys from dict in one operation.
 
-        :param keys: a list of key.
+        :params list keys: List of keys to look up.
 
-        :return: a dict with the combined keys.
+        :returns: Dictionary of the keys and values that were present.
         """
-        return {key: self[key] for key in keys if key in self}
+        try:
+            return {key: self[key] for key in keys if key in self}
+        except Exception as e:
+            logger.critical('unable to looks up multiple keys :: {}'.format(e))
+            return {}
 
     def delete(self, key):
+        """ Delete a key.
+
+        :params key: Key to delete.
+
+        :returns: The value of the delete key, otherwise False.
+        """
         delete = self.pop(key, False)
         if delete:
             self.hook(operation="delete", item=key)
@@ -117,8 +144,9 @@ class PersistentStorage(DefaultStorage):
 
     def __init__(self, filename, writeback=False, *args, **kwargs):
         """
-        :param str filename: the filename specified is the base filename for the underlying database
-        :param bool writeback: all entries accessed are also cached in memory
+
+        :params str filename: The filename specified is the base filename for the underlying database.
+        :params boolean writeback: All entries accessed are also cached in memory.
         """
         super(PersistentStorage, self).__init__(*args, **kwargs)
 

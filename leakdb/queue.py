@@ -29,23 +29,30 @@ class LeakQueue(object):
         :param str operation: the operation name.
         :param item: the item to queued.
         :param date date: when the item is trigger.
+
+        :returns: True if insertions succeeds, False otherwise.
         """
         try:
             self.queue.put({"operation": operation, "item": item, "date": date or datetime.utcnow()})
             self.flush()
         except Exception as e:
             logger.critical('unable to put an item in the queue :: {}'.format(e))
+            return False
+        else:
+            return True
 
     def flush(self, force=False):
         """ Flush the queue and block until all tasks are done.
 
-        :param bool force: force the queue flushing
+        :param boolean force: force the queue flushing
+
+        :returns: True if the flush occurs, False otherwise.
         """
         if self.queue.full() or force:
             logger.info('queue is full ({} items) :: flush it !'.format(self.queue.qsize()))
             self.queue.join()
-
-        return True
+            return True
+        return False
 
     def worker(self):
         while True:
