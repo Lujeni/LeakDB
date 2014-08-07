@@ -19,6 +19,18 @@ LeakDB is a very simple and fast key value store for Python.
 All data is stored in memory and the persistence is defined by the user.
 A max queue size can be defined for a auto-flush.
 
+
+Installation
+------------
+This code has been run on Python 2.7.
+You should install ``gevent`` through your system packages management.
+
+::
+
+  $ pip install LeakDB #and enjoy
+
+
+
 API
 ---
 .. code:: python
