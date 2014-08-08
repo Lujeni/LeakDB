@@ -6,7 +6,6 @@ from gevent import spawn, sleep as g_sleep
 from gevent.queue import JoinableQueue, Empty
 
 from leakdb import logger
-from leakdb.settings import BaseSettings
 
 
 class LeakQueue(object):
@@ -64,7 +63,7 @@ class LeakQueue(object):
                     logger.info('re-queue item :: {}'.format(item))
                     self.queue.put(item)
             except Empty:
-                logger.info('queue is empty :: wait {}s'.format(BaseSettings.QUEUE_WAIT_EMPTY))
+                logger.info('queue is empty')
             else:
                 self.queue.task_done()
 
